@@ -1,0 +1,50 @@
+# Page snapshot
+
+```yaml
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - button "Entrar / Cadastrar" [ref=e5] [cursor=pointer]
+    - heading "Adaptador de Documentos Acessíveis" [level=1] [ref=e6]
+    - paragraph [ref=e7]: Faça o upload de um documento PDF, preencha as informações e clique em "Adaptar" para baixar as versões acessíveis.
+  - generic:
+    - generic:
+      - region "Upload de Documento":
+        - heading "Upload de Documento" [level=2]
+        - generic:
+          - img
+          - generic: Selecionar arquivo(s) PDF
+        - button "Selecionar arquivo(s) PDF"
+        - paragraph: Nenhum arquivo selecionado
+      - region "Informações do Documento":
+        - heading "Informações do Documento" [level=2]
+        - generic:
+          - generic:
+            - generic: 📚 Disciplina
+            - combobox "📚 Disciplina":
+              - option "Selecione uma disciplina..." [selected]
+          - generic:
+            - generic: 🏫 Turma
+            - combobox "🏫 Turma" [disabled]:
+              - option "Selecione a disciplina primeiro..." [selected]
+          - generic:
+            - generic: 🎓 Aluno
+            - combobox "🎓 Aluno":
+              - option "Nenhum aluno específico" [selected]
+          - generic:
+            - generic: Data da Adaptação
+            - textbox "Data da Adaptação"
+          - generic:
+            - generic: Título do Documento
+            - textbox "Título do Documento":
+              - /placeholder: "Ex: Capítulo 1 - O Sistema Nervoso"
+      - generic:
+        - generic: Espaço para Anúncio (728 x 90)
+      - group:
+        - generic "▶ ⚙️ Configuração do Cabeçalho (Personalização da Empresa)"
+      - generic:
+        - button "Adaptar Documento":
+          - img
+          - generic: Adaptar Documento
+    - generic:
+      - generic: Espaço para Anúncio (728 x 90)
+```

@@ -1,0 +1,23 @@
+prisma:info Starting a postgresql pool with 5 connections in PgBouncer mode.
+prisma:error 
+Invalid `prisma.user.findFirst()` invocation:
+
+
+Authentication failed against database server at `aws-0-us-west-2.pooler.supabase.com`, the provided database credentials for `postgres` are not valid.
+
+Please make sure to provide valid database credentials for the database server at `aws-0-us-west-2.pooler.supabase.com`.
+PrismaClientInitializationError: 
+Invalid `prisma.user.findFirst()` invocation:
+
+
+Authentication failed against database server at `aws-0-us-west-2.pooler.supabase.com`, the provided database credentials for `postgres` are not valid.
+
+Please make sure to provide valid database credentials for the database server at `aws-0-us-west-2.pooler.supabase.com`.
+    at $n.handleRequestError (C:\Users\araga\Downloads\adaptador-corrigido\backend\node_modules\@prisma\client\runtime\library.js:121:7615)
+    at $n.handleAndLogRequestError (C:\Users\araga\Downloads\adaptador-corrigido\backend\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\araga\Downloads\adaptador-corrigido\backend\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\araga\Downloads\adaptador-corrigido\backend\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async main (C:\Users\araga\Downloads\adaptador-corrigido\backend\test_prisma.ts:7:16) {
+  clientVersion: '5.22.0',
+  errorCode: undefined
+}

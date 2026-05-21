@@ -1,0 +1,450 @@
+/* ============================================================================
+   STUDIO CSS — Estilos do Estúdio de Conteúdo Educacional
+   ============================================================================ */
+
+/* ---- Cards Grid ---- */
+.studio-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1.25rem;
+}
+
+.studio-card {
+    background: var(--card-bg, #fff);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.studio-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.studio-card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+}
+
+.studio-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary, #2d3436);
+}
+
+.studio-card p {
+    font-size: 0.82rem;
+    color: var(--text-secondary, #636e72);
+    margin: 0;
+    line-height: 1.3;
+}
+
+.studio-role-badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+    color: white;
+}
+
+.studio-card[data-role-required] {
+    border: 1px solid rgba(108, 92, 231, 0.15);
+}
+
+.studio-card .studio-generate-btn {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    margin-top: auto;
+}
+
+/* ---- Modais ---- */
+.studio-modal {
+    z-index: 10000;
+}
+
+.studio-modal-content {
+    max-width: 520px;
+    width: 92%;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    animation: studioSlideIn 0.25s ease-out;
+}
+
+@keyframes studioSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.studio-radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.studio-radio {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.9rem;
+    background: var(--card-bg, #f8f9fa);
+}
+
+.studio-radio:hover {
+    border-color: var(--primary-color, #6c5ce7);
+    background: rgba(108, 92, 231, 0.04);
+}
+
+.studio-radio:has(input:checked) {
+    border-color: var(--primary-color, #6c5ce7);
+    background: rgba(108, 92, 231, 0.08);
+    box-shadow: 0 0 0 1px var(--primary-color, #6c5ce7);
+}
+
+.studio-radio input[type="radio"] {
+    accent-color: var(--primary-color, #6c5ce7);
+}
+
+/* ---- Style Grid (Infographic) ---- */
+.studio-style-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0.5rem;
+}
+
+.studio-style-btn {
+    padding: 0.6rem 0.4rem;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    background: var(--card-bg, #f8f9fa);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.15s ease;
+    text-align: center;
+}
+
+.studio-style-btn:hover {
+    border-color: var(--primary-color, #6c5ce7);
+    transform: scale(1.03);
+}
+
+.studio-style-btn.active {
+    border-color: var(--primary-color, #6c5ce7);
+    background: rgba(108, 92, 231, 0.1);
+    box-shadow: 0 0 0 1px var(--primary-color, #6c5ce7);
+    font-weight: 600;
+}
+
+/* ---- Artefatos Gerados ---- */
+.studio-artifacts-list {
+    border-top: 1px solid #eee;
+    padding-top: 1.5rem;
+}
+
+.studio-artifact-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    background: var(--card-bg, #fff);
+    margin-bottom: 0.75rem;
+    transition: box-shadow 0.15s ease;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.studio-artifact-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.studio-artifact-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.studio-artifact-icon {
+    font-size: 1.75rem;
+    flex-shrink: 0;
+}
+
+.studio-artifact-meta h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary, #2d3436);
+}
+
+.studio-artifact-meta p {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary, #636e72);
+}
+
+.studio-artifact-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.studio-artifact-actions button {
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    border: 1px solid #ddd;
+    background: var(--card-bg, #f8f9fa);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.studio-artifact-actions button:hover {
+    border-color: var(--primary-color, #6c5ce7);
+    color: var(--primary-color, #6c5ce7);
+}
+
+/* Status badges */
+.studio-status-badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.studio-status-badge.queued {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.studio-status-badge.processing {
+    background: #cce5ff;
+    color: #004085;
+    animation: studioPulse 1.5s infinite;
+}
+
+.studio-status-badge.completed {
+    background: #d4edda;
+    color: #155724;
+}
+
+.studio-status-badge.failed {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+@keyframes studioPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* ---- Quiz Player ---- */
+.quiz-question {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-radius: 12px;
+    background: var(--card-bg, #f8f9fa);
+    border: 1px solid #eee;
+}
+
+.quiz-question h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.95rem;
+}
+
+.quiz-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.4rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.quiz-option:hover {
+    background: rgba(108, 92, 231, 0.06);
+}
+
+.quiz-option.correct {
+    background: #d4edda;
+    border: 1px solid #28a745;
+}
+
+.quiz-option.incorrect {
+    background: #f8d7da;
+    border: 1px solid #dc3545;
+}
+
+.quiz-explanation {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    background: #e3f2fd;
+    font-size: 0.85rem;
+    color: #0d47a1;
+    display: none;
+}
+
+.quiz-score-card {
+    text-align: center;
+    padding: 2rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    color: white;
+    margin-bottom: 1.5rem;
+}
+
+.quiz-score-card .score {
+    font-size: 3rem;
+    font-weight: 700;
+}
+
+.quiz-score-card .label {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+/* ---- Flashcard Viewer ---- */
+.flashcard-container {
+    perspective: 1000px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.flashcard {
+    width: 100%;
+    min-height: 220px;
+    position: relative;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.5s ease;
+}
+
+.flashcard.flipped {
+    transform: rotateY(180deg);
+}
+
+.flashcard-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.flashcard-front {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: white;
+    font-weight: 600;
+}
+
+.flashcard-back {
+    background: var(--card-bg, #fff);
+    border: 2px solid #6c5ce7;
+    transform: rotateY(180deg);
+    color: var(--text-primary, #2d3436);
+}
+
+.flashcard-nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.flashcard-nav button {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: var(--card-bg, #f8f9fa);
+    cursor: pointer;
+}
+
+.flashcard-counter {
+    font-size: 0.9rem;
+    color: var(--text-secondary, #636e72);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 640px) {
+    .studio-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .studio-style-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .studio-modal-content {
+        width: 96%;
+    }
+}
+
+/* ---- Dark mode support ---- */
+[data-theme="dark"] .studio-card,
+.dark-mode .studio-card {
+    background: #2d3436;
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .studio-card h3,
+.dark-mode .studio-card h3 {
+    color: #dfe6e9;
+}
+
+[data-theme="dark"] .studio-radio,
+.dark-mode .studio-radio {
+    background: #2d3436;
+    border-color: #636e72;
+    color: #dfe6e9;
+}
+
+[data-theme="dark"] .studio-style-btn,
+.dark-mode .studio-style-btn {
+    background: #2d3436;
+    border-color: #636e72;
+    color: #dfe6e9;
+}
+
+[data-theme="dark"] .studio-artifact-card,
+.dark-mode .studio-artifact-card {
+    background: #2d3436;
+    border-color: rgba(255, 255, 255, 0.06);
+}

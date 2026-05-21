@@ -1,0 +1,91 @@
+/* turmas.css */
+.classes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.class-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.class-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Header style for different shifts */
+.class-header {
+  padding: 1.5rem;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.shift-manha { background-color: #f59e0b; } /* Morning - Orange/Yellow */
+.shift-tarde { background-color: #0ea5e9; } /* Afternoon - Blue */
+.shift-noite { background-color: #3b82f6; } /* Night - Dark Blue */
+
+.class-shift-icon {
+  background: rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 0.5rem;
+  display: flex;
+}
+
+.class-year {
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: rgba(0,0,0,0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.class-info {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.class-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color, #1e293b);
+  margin-bottom: 0.25rem;
+}
+
+.class-discipline {
+  font-size: 0.9rem;
+  color: var(--primary, #008fe9);
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.class-details {
+  font-size: 0.9rem;
+  color: var(--text-color, #334155);
+  margin-top: auto;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.class-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted-text, #475569);
+  font-size: 0.85rem;
+}

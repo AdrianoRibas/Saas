@@ -1,0 +1,9 @@
+/* 
+   Estilos especí­ficos para a Mesa de Triagem 
+   Padrão de estrutura importado do index.css, mas permite customizações locais
+*/
+
+.mesa-triagem-custom-class {
+    /* Exemplo: espaço para customizações sem afetar o estilo global */
+    display: block;
+}

@@ -1,0 +1,25 @@
+{
+  "name": "video-service",
+  "version": "1.0.0",
+  "description": "Microserviço de geração de vídeo programático",
+  "scripts": {
+    "start": "remotion preview src/index.ts",
+    "build": "remotion render src/index.ts Video out/video.mp4",
+    "upgrade": "remotion upgrade",
+    "test": "eslint src --ext ts,tsx && tsc"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "latest",
+    "zod": "3.22.3"
+  },
+  "devDependencies": {
+    "@remotion/cli": "latest",
+    "@remotion/eslint-config": "latest",
+    "@types/react": "^18.3.3",
+    "@types/web": "^0.0.149",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  }
+}

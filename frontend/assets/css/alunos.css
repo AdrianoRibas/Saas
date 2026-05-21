@@ -1,0 +1,109 @@
+/* alunos.css */
+.students-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.student-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.student-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.student-header {
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  background-color: var(--primary-light, #f0f7ff);
+}
+
+.student-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid var(--primary, #008fe9);
+  object-fit: cover;
+  background-color: #fff;
+}
+
+.student-header-info {
+  flex: 1;
+}
+
+.student-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-color, #1e293b);
+  margin-bottom: 0.25rem;
+}
+
+.student-registration {
+  font-size: 0.8rem;
+  color: var(--muted-text, #64748b);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.student-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.student-preferences-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-color, #334155);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.student-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tag {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tag-braille { background-color: #dbeafe; color: #1e40af; }
+.tag-legibility { background-color: #fef3c7; color: #92400e; }
+.tag-adhd { background-color: #fee2e2; color: #b91c1c; }
+.tag-autism { background-color: #e0e7ff; color: #4338ca; }
+
+.student-footer {
+  font-size: 0.8rem;
+  color: var(--muted-text, #64748b);
+  margin-top: auto;
+  border-top: 1px solid var(--border-color, #e2e8f0);
+  padding-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

@@ -1,0 +1,745 @@
+// Prisma Schema - Modelo do Banco de Dados
+// Adaptador Docs SaaS - Multi-tenant B2B para Universidades
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==============================================================================
+// ENUMS
+// ==============================================================================
+
+enum Role {
+  OWNER
+  ADMIN
+  TEACHER
+  STUDENT
+  MEMBER
+}
+
+// ==============================================================================
+// ENUMS DO ESTÚDIO (Geração de conteúdo via NotebookLM)
+// ==============================================================================
+
+enum StudioArtifactType {
+  AUDIO_SUMMARY
+  SLIDES
+  INFOGRAPHIC
+  QUIZ
+  FLASHCARDS
+}
+
+enum StudioStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum AudioFormat {
+  DETAILED_ANALYSIS
+  SUMMARY
+  CRITIQUE
+  DEBATE
+}
+
+enum SlidesFormat {
+  DETAILED_PRESENTATION
+  PRESENTER_SLIDES
+}
+
+enum InfographicOrientation {
+  LANDSCAPE
+  PORTRAIT
+  SQUARE
+}
+
+enum InfographicStyle {
+  SKETCH
+  KAWAII
+  PROFESSIONAL
+  SCIENTIFIC
+  ANIME
+  CLAY
+  EDITORIAL
+  INSTRUCTIVE
+  BENTO_GRID
+  BRICKS
+}
+
+enum DetailLevel {
+  CONCISE
+  STANDARD
+  DETAILED
+}
+
+enum QuizDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuizQuestionCount {
+  LESS
+  STANDARD
+  MORE
+}
+
+enum SubscriptionStatus {
+  INACTIVE      // Sem assinatura ativa
+  ACTIVE        // Assinatura ativa
+  PAST_DUE      // Pagamento atrasado
+  CANCELED      // Assinatura cancelada
+}
+
+enum DocStatus {
+  PENDING       // Aguardando processamento
+  PROCESSING    // Em processamento pela IA
+  COMPLETED     // Adaptação concluída
+  FAILED        // Falha no processamento
+}
+
+enum Shift {
+  MORNING   // Manhã
+  AFTERNOON // Tarde
+  NIGHT     // Noite
+}
+
+enum AccessibilityType {
+  BLIND           // Cego (necessita Braille/Áudio)
+  LOW_VISION      // Baixa visão (necessita fonte ampliada)
+  DYSLEXIA        // Dislexia (fonte especial, espaçamento)
+  DEAF            // Surdo (transcrições, legendas)
+  MOTOR           // Deficiência motora
+  COGNITIVE       // Dificuldade cognitiva
+  OTHER           // Outras necessidades
+}
+
+// ==============================================================================
+// ORGANIZATION (TENANT) - Multi-tenancy Root
+// ==============================================================================
+
+model Organization {
+  id                   String             @id @default(cuid())
+  name                 String
+  slug                 String             @unique // URL-friendly identifier (ex: usp, unicamp)
+  
+  // === WHITELABEL: Configurações de Tema ===
+  logoUrl              String?            // URL do logo da universidade
+  primaryColor         String?            @default("#3B82F6") // Cor primária (hex)
+  secondaryColor       String?            @default("#1E40AF") // Cor secundária (hex)
+  accentColor          String?            @default("#10B981") // Cor de destaque (hex)
+  
+  // === WHITELABEL: Cabeçalho de Documentos ===
+  headerTitle          String?            // Nome da instituição no cabeçalho
+  headerLegalText      String?            @db.Text // Texto legal customizado
+  headerExtraInfo      String?            @db.Text // Informações adicionais
+  
+  // === STRIPE: Faturamento ===
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?
+  subscriptionStatus   SubscriptionStatus @default(INACTIVE)
+  
+  // === CONFIGURAÇÕES GERAIS ===
+  timezone             String?            @default("America/Sao_Paulo")
+  language             String?            @default("pt-BR")
+  
+  // === RELAÇÕES ===
+  users                User[]
+  teachers             Teacher[]
+  disciplines          Discipline[]
+  classes              Class[]
+  students             Student[]
+  documents            Document[]
+  docTemplates         DocTemplate[]
+  invites              Invite[]
+  knowledgeBase        KnowledgeBase[]
+  studioArtifacts      StudioArtifact[]
+  
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+}
+
+// ==============================================================================
+// INVITE - Convites para novos membros
+// ==============================================================================
+
+enum InviteStatus {
+  PENDING   // Aguardando aceite
+  ACCEPTED  // Convite aceito
+  EXPIRED   // Convite expirado
+  REVOKED   // Convite cancelado
+}
+
+model Invite {
+  id             String       @id @default(cuid())
+  email          String       // Email do convidado
+  role           Role         @default(MEMBER)
+  token          String       @unique @default(cuid()) // Token único para aceite
+  status         InviteStatus @default(PENDING)
+  expiresAt      DateTime     // Data de expiração
+  
+  // Quem enviou o convite
+  invitedById    String
+  invitedBy      User         @relation("InvitedBy", fields: [invitedById], references: [id])
+  
+  // Organização
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  @@unique([email, organizationId]) // Apenas um convite pendente por email/org
+  @@index([organizationId])
+  @@index([token])
+}
+
+// ==============================================================================
+// USER - Usuários que logam no sistema
+// ==============================================================================
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  passwordHash   String
+  name           String?
+  role           Role          @default(MEMBER)
+  
+  // === TENANT ISOLATION ===
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  
+  // === RELAÇÃO COM PROFESSOR (1-to-1 opcional) ===
+  teacher        Teacher?
+  
+  // === RELAÇÃO COM ALUNO (1-to-1 opcional) ===
+  student        Student?     @relation("UserStudent")
+  
+  // === DOCUMENTOS CRIADOS PELO USUÁRIO ===
+  documents      Document[]
+  
+  // === CONVITES ENVIADOS ===
+  invitesSent    Invite[]     @relation("InvitedBy")
+  
+  // === SEGURANÇA: Account Lockout ===
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  
+  // === TOKENS E LOGS ===
+  refreshTokens       RefreshToken[]
+  passwordResetTokens PasswordResetToken[]
+  auditLogs           AuditLog[]
+  notifications       Notification[]
+  
+  // === ESTÚDIO ===
+  studioArtifacts StudioArtifact[]
+  quizAttempts    QuizAttempt[]
+  favorites       Favorite[]
+  
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  @@index([organizationId])
+}
+
+// ==============================================================================
+// REFRESH TOKEN - Tokens de renovação de sessão
+// ==============================================================================
+
+model RefreshToken {
+  id          String   @id @default(cuid())
+  token       String   @unique
+  expiresAt   DateTime
+  revoked     Boolean  @default(false)
+  
+  // Metadados de segurança
+  userAgent   String?
+  ipAddress   String?
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([token])
+}
+
+// ==============================================================================
+// PASSWORD RESET TOKEN - Tokens de recuperação de senha
+// ==============================================================================
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([token])
+}
+
+// ==============================================================================
+// AUDIT LOG - Log de auditoria de ações
+// ==============================================================================
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  REGISTER
+  PASSWORD_CHANGE
+  INVITE_SENT
+  INVITE_ACCEPTED
+  MEMBER_REMOVED
+  ROLE_CHANGED
+  DOCUMENT_CREATED
+  DOCUMENT_DELETED
+  SETTINGS_UPDATED
+}
+
+model AuditLog {
+  id           String      @id @default(cuid())
+  action       AuditAction
+  description  String?
+  metadata     Json?       // Dados extras da ação
+  
+  // Contexto
+  ipAddress    String?
+  userAgent    String?
+  
+  // Relações
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  organizationId String?
+  
+  createdAt    DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([organizationId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ==============================================================================
+// TEACHER - Professores (vinculados a um User)
+// ==============================================================================
+
+model Teacher {
+  id             String       @id @default(cuid())
+  registration   String?      // Matrícula institucional
+  department     String?      // Departamento
+  
+  // === RELAÇÃO COM USER (1-to-1) ===
+  userId         String       @unique
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // === TENANT ISOLATION ===
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // === RELAÇÕES ===
+  disciplines    Discipline[] // Disciplinas que o professor leciona
+  documents      Document[]   // Documentos enviados pelo professor
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  @@index([organizationId])
+}
+
+// ==============================================================================
+// NOTIFICATIONS - Notificações do Sistema
+// ==============================================================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String   @db.Text
+  type      String   @default("INFO") // INFO, WARNING, SUCCESS, ERROR
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+}
+
+// ==============================================================================
+// DISCIPLINE - Disciplinas/Matérias
+// ==============================================================================
+
+model Discipline {
+  id             String       @id @default(cuid())
+  name           String       // Ex: "Cálculo I", "História do Brasil"
+  code           String?      // Código da disciplina (ex: "MAT101")
+  description    String?      @db.Text
+  
+  // === PROFESSOR RESPONSÁVEL ===
+  teacherId      String?
+  teacher        Teacher?     @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  
+  // === TENANT ISOLATION ===
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // === RELAÇÕES ===
+  classes        Class[]      // Turmas desta disciplina
+  documents      Document[]   // Documentos desta disciplina
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  @@unique([code, organizationId]) // Código único por organização
+  @@index([organizationId])
+}
+
+// ==============================================================================
+// CLASS - Turmas
+// ==============================================================================
+
+model Class {
+  id             String         @id @default(cuid())
+  name           String         // Ex: "Turma A", "2024.1"
+  year           Int?           // Ano letivo
+  semester       Int?           // Semestre (1 ou 2)
+  shift          Shift          @default(MORNING) // Turno
+  
+  // === DISCIPLINA ===
+  disciplineId   String
+  discipline     Discipline     @relation(fields: [disciplineId], references: [id], onDelete: Cascade)
+  
+  // === TENANT ISOLATION ===
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // === RELAÇÕES ===
+  students       ClassStudent[] // Alunos matriculados (tabela pivot)
+  documents      Document[]     // Documentos destinados a esta turma
+  
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  
+  @@index([organizationId])
+  @@index([disciplineId])
+  @@index([shift])
+}
+
+// ==============================================================================
+// STUDENT - Alunos (NÃO logam no sistema, apenas cadastro para relatórios)
+// ==============================================================================
+
+model Student {
+  id                  String            @id @default(cuid())
+  name                String
+  registration        String?           // Matrícula do aluno
+  email               String?           // Email para contato (não é login)
+  
+  // === RELAÇÃO COM USER (1-to-1 opcional — permite login) ===
+  userId              String?           @unique
+  user                User?             @relation("UserStudent", fields: [userId], references: [id], onDelete: SetNull)
+  
+  // === ACESSIBILIDADE / PCD ===
+  isPcd               Boolean           @default(false) // Pessoa com Deficiência
+  accessibilityTypes  AccessibilityType[] // Tipos de necessidades
+  accessibilityNotes  String?           @db.Text // Observações específicas
+  
+  // === PREFERÊNCIAS DE ADAPTAÇÃO ===
+  prefersBraille      Boolean           @default(false)
+  prefersLargePrint   Boolean           @default(false)
+  prefersAudio        Boolean           @default(false)
+  preferredFontSize   Int?              @default(16) // Tamanho de fonte preferido
+  autismLevel         Int?              // Nível de Autismo (1, 2 ou 3)
+  
+  // === TENANT ISOLATION ===
+  organizationId      String
+  organization        Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // === RELAÇÕES ===
+  classes             ClassStudent[]    // Turmas em que está matriculado (tabela pivot)
+  documents           Document[]        // Documentos adaptados para este aluno
+  
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  
+  @@unique([registration, organizationId]) // Matrícula única por organização
+  @@index([organizationId])
+  @@index([isPcd])
+}
+
+// ==============================================================================
+// CLASS_STUDENT - Tabela Pivot (Relação N-N entre Class e Student)
+// ==============================================================================
+
+model ClassStudent {
+  id          String   @id @default(cuid())
+  
+  classId     String
+  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  enrolledAt  DateTime @default(now()) // Data de matrícula na turma
+  
+  @@unique([classId, studentId]) // Evita duplicações
+  @@index([classId])
+  @@index([studentId])
+}
+
+// ==============================================================================
+// DOCUMENT - Documentos Adaptados
+// ==============================================================================
+
+model Document {
+  id                       String       @id @default(cuid())
+  
+  // === ARQUIVO ORIGINAL ===
+  originalName             String       // Nome do arquivo original
+  originalKey              String       // Chave no R2/S3
+  originalUrl              String       // URL para download
+  originalPages            Int?         // Número de páginas (para cálculo de ROI)
+  
+  // === VERSÃO BRAILLE ===
+  brailleKey               String?
+  brailleUrl               String?
+  brailleDownloaded        Boolean      @default(false)
+  brailleDownloadedAt      DateTime?
+  
+  // === VERSÃO ALTA LEGIBILIDADE ===
+  highLegibilityKey        String?
+  highLegibilityUrl        String?
+  highLegibilityDownloaded Boolean      @default(false)
+  highLegibilityDownloadedAt DateTime?
+  
+  // === VERSÃO ÁUDIO (futuro) ===
+  audioKey                 String?
+  audioUrl                 String?
+  audioDownloaded          Boolean      @default(false)
+  audioDownloadedAt        DateTime?
+
+  // === VERSÃO AUTISMO (TEA) ===
+  autismKey                String?
+  autismUrl                String?
+  autismDownloaded         Boolean      @default(false)
+  autismDownloadedAt       DateTime?
+  
+  // === STATUS E ERROS ===
+  status                   DocStatus    @default(PENDING)
+  errorMessage             String?      @db.Text
+  processingStartedAt      DateTime?
+  processingCompletedAt    DateTime?
+  
+  // === METADADOS ACADÊMICOS (legado - manter para compatibilidade) ===
+  titulo                   String?      // Título do documento
+  disciplina               String?      // Campo legado - usar disciplineId para novos registros
+  professor                String?      // Campo legado - usar teacherId para novos registros
+  dataAdaptacao            DateTime?
+  
+  // === RELAÇÃO: QUEM ENVIOU (User) ===
+  userId                   String
+  user                     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // === RELAÇÃO: PROFESSOR (opcional) ===
+  teacherId                String?
+  teacher                  Teacher?     @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+  
+  // === RELAÇÃO: DISCIPLINA (opcional) ===
+  disciplineId             String?
+  discipline               Discipline?  @relation(fields: [disciplineId], references: [id], onDelete: SetNull)
+  
+  // === RELAÇÃO: TURMA (opcional) ===
+  classId                  String?
+  class                    Class?       @relation(fields: [classId], references: [id], onDelete: SetNull)
+  
+  // === RELAÇÃO: ALUNO ESPECÍFICO (opcional) ===
+  studentId                String?
+  student                  Student?     @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  
+  // === TENANT ISOLATION (OBRIGATÓRIO) ===
+  organizationId           String
+  organization             Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  // === ESTÚDIO ===
+  studioArtifacts          StudioArtifact[]
+  
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
+  
+  // Índices simples
+  @@index([organizationId])
+  @@index([userId])
+  
+  // Índices compostos para filtros comuns (Performance 10x)
+  @@index([organizationId, status])
+  @@index([organizationId, teacherId])
+  @@index([organizationId, disciplineId])
+  @@index([organizationId, classId])
+  @@index([organizationId, studentId])
+  @@index([organizationId, createdAt])
+}
+
+// ==============================================================================
+// KNOWLEDGE_BASE - Base de Conhecimento Científico para RAG (TEA/Inclusão)
+// ==============================================================================
+
+model KnowledgeBase {
+  id               String       @id @default(cuid())
+  title            String       // Título do artigo ou manual
+  content          String       @db.Text // Conteúdo textual ou fragmento (chunk)
+  sourceUrl        String?      // Link original do artigo
+  
+  // Metadata para busca semântica (RAG)
+  tags             String[]     @default([]) // Ex: ["TEA", "Avaliação", "Matemática"]
+  autismLevel      Int?         // Nível de Autismo (1, 2, 3 ou null para geral)
+  
+  // Tenant isolation (Opcional - pode haver base global)
+  organizationId   String?
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([tags])
+}
+
+// ==============================================================================
+// DOC_TEMPLATE - Templates de Documentos (.docx) por Organização
+// ==============================================================================
+
+model DocTemplate {
+  id             String       @id @default(cuid())
+  name           String       // Ex: "Template Padrão USP", "Prova Acessível"
+  description    String?      @db.Text
+  
+  // === ARQUIVO DO TEMPLATE ===
+  fileKey        String       // Chave no R2/S3
+  fileUrl        String       // URL para download
+  
+  // === CONFIGURAÇÕES ===
+  isDefault      Boolean      @default(false) // Template padrão da organização
+  isActive       Boolean      @default(true)  // Template ativo/inativo
+  
+  // === VARIÁVEIS SUPORTADAS (JSON) ===
+  // Ex: ["{{nome_aluno}}", "{{disciplina}}", "{{professor}}", "{{content_body}}"]
+  supportedVariables String?  @db.Text
+  
+  // === TENANT ISOLATION ===
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  @@index([organizationId])
+  @@index([isDefault])
+  @@index([isActive])
+}
+
+// ==============================================================================
+// STUDIO_ARTIFACT - Artefatos gerados pelo Estúdio (NotebookLM)
+// ==============================================================================
+
+model StudioArtifact {
+  id                    String              @id @default(cuid())
+  type                  StudioArtifactType
+  status                StudioStatus        @default(QUEUED)
+
+  // Config genérica (evita N colunas): { format, duration, language, style, ... }
+  config                Json
+
+  // Resultado
+  resultKey             String?             // Chave no Storage (S3/Supabase)
+  resultUrl             String?
+  resultData            Json?               // Para Quiz/Flashcards (perguntas em JSON)
+  errorMessage          String?             @db.Text
+
+  // Timing
+  processingStartedAt   DateTime?
+  processingCompletedAt DateTime?
+
+  // Relações
+  documentId            String
+  document              Document            @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  userId                String
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organizationId        String
+  organization          Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  // Sub-relações
+  quizAttempts          QuizAttempt[]
+  favorites             Favorite[]
+
+  @@index([organizationId])
+  @@index([documentId])
+  @@index([userId])
+  @@index([status])
+  @@index([organizationId, type])
+}
+
+// ==============================================================================
+// QUIZ_ATTEMPT - Tentativas de Quiz (Analytics)
+// ==============================================================================
+
+model QuizAttempt {
+  id               String          @id @default(cuid())
+  score            Int             // Pontuação (0-100)
+  totalQuestions   Int
+  correctAnswers   Int
+  answers          Json            // Respostas do usuário detalhadas
+
+  artifactId       String
+  artifact         StudioArtifact  @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+
+  userId           String
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organizationId   String
+
+  createdAt        DateTime        @default(now())
+
+  @@index([organizationId])
+  @@index([artifactId])
+  @@index([userId])
+}
+
+// ==============================================================================
+// FAVORITE - Biblioteca Pessoal (Favoritos)
+// ==============================================================================
+
+model Favorite {
+  id               String          @id @default(cuid())
+
+  artifactId       String
+  artifact         StudioArtifact  @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+
+  userId           String
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organizationId   String
+
+  createdAt        DateTime        @default(now())
+
+  @@unique([userId, artifactId]) // Evita duplicações
+  @@index([organizationId])
+  @@index([userId])
+}

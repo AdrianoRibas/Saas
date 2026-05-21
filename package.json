@@ -1,0 +1,15 @@
+{
+    "name": "adaptador-saas-monorepo",
+    "private": true,
+    "description": "Monorepo para o sistema de adaptação de documentos acessíveis",
+    "scripts": {
+        "build": "cd backend && npm run build",
+        "start": "cd backend && npm run start",
+        "postinstall": "cd backend && npm install",
+        "start:backend": "cd backend && npm run dev",
+        "start:frontend": "npx serve frontend"
+    },
+    "engines": {
+        "node": ">=20.0.0"
+    }
+}
